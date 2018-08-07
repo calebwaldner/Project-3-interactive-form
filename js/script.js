@@ -24,10 +24,12 @@ const shirtColorOptionsArr = [
 const basicInfoFieldSet = document.getElementById('basic-info');
 const jobSelect = document.getElementById('title');
 const jobOtherInput = document.getElementById('other-title');
+const colorDiv = document.getElementById('colors-js-puns');
 const colorMenu = document.getElementById('color');
 const firstColorOption = colorMenu.firstElementChild;
 const allColorOptions = colorMenu.children;
 const shirtThemeMenu = document.getElementById('design');
+const activitiesField = document.getElementsByClassName('activities')[0];
 
 //create elements
 const colorOptionPlaceholder = document.createElement('option');
@@ -41,7 +43,6 @@ GENERAL FUNCTIONS
 //removes an item
 const removeItem = (item) => {
   item.remove();
-  console.log('REMOVED' + item)
 }
 
 
@@ -53,7 +54,6 @@ FUNCTIONS RELATED TO JOB SELECTION
 //checks job select input, returns true if "other" is selected, false if not
 const jobValueCheck = () => {
   let jobValue = jobSelect.value === 'other'; //if job selection is "other", store true; if not "other", store false
-  console.log('Job value is other:' + jobValue);
   return jobValue;
 }
 
@@ -61,7 +61,6 @@ const jobValueCheck = () => {
 const jobOtherFound = () => {
   let found = jobOtherTitle; //stores string or null
   let result = found !== null ? true : false; //if found is not null, return true; if null, return false
-  console.log('Found other job input box:' + result);
   return result;
 }
 
@@ -94,7 +93,7 @@ const removeHTMLColorOptions = (removeColors) => {
 //adds and selects the "placeholder" for the color menu
 const addColorPlaceholder = () => {
   colorMenu.appendChild(colorOptionPlaceholder);
-  colorOptionPlaceholder.innerHTML = "Please select a design";
+  colorOptionPlaceholder.innerHTML = "&larr; Please select a design";
   colorOptionPlaceholder.selected = true;
   colorOptionPlaceholder.disabled = true;
 }
@@ -126,6 +125,15 @@ const getColorOptions = () => {
   setSelected(currentColorList); //sets first option as selected
 }
 
+//toggles color div if shirt theme is selected
+const toggleColorDiv = () => {
+  if (colorMenu.value === '← Please select a design') { //if colorMenu is the placeholder
+    colorDiv.style.display = 'none'; // then hide the color div
+  } else {
+    colorDiv.style.display = 'block'; //otherwise show the color div
+  }
+}
+
 //sets first option as selected or placeholder option as visible and selected
 const setSelected = (list) => {
   if (list.length > 0) { //if there are any color options currently displayed
@@ -136,6 +144,14 @@ const setSelected = (list) => {
   }
 }
 
+/**********************************************************************
+FUNCTIONS RELATED TO REGISTER FOR ACTIVITIES
+**********************************************************************/
+
+
+// const isChecked = e.target.checked;
+
+
 
 
 /**********************************************************************
@@ -144,6 +160,10 @@ INITIAL CODE RUN ON PAGE LOAD
 
 //sets focus to name input on page load
 document.getElementById('name').focus();
+
+//removes color div
+colorDiv.style.display = 'none';
+
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
@@ -157,14 +177,22 @@ EVENT LISTENERS
 **********************************************************************/
 
 //listens for select box to change
-jobSelect.addEventListener('change', (event) => {
+jobSelect.addEventListener('change', () => {
   jobOtherFound() && removeOtherTitle(); //if jobOtherFound is true, removes jobOtherTitle box; if false, nothing
   jobValueCheck() && appendOtherJobInput(); //if jobValueCheck is true, appends "other" job text box; if false, nothing
 });
 
 shirtThemeMenu.addEventListener('change', () => {
   getColorOptions();
+  toggleColorDiv();
 });
+
+activitiesField.addEventListener('change', (e) => {
+  const checkbox = e.target;
+  const isChecked = checkbox.checked;
+  const lable = checkbox.parentNode;
+});
+
 
 
 
