@@ -8,17 +8,7 @@ GLOBAL VARIABLE DECLARATIONS
 **********************************************************************/
 
 //variable declarations
-let jobOtherTitle;
-
-//array for all shirt color options. color, value, and theme properties are required.
-const shirtColorOptionsArr = [
-  {color:'Cornflower Blue', value:'cornflowerblue', theme:'js puns'},
-  {color:'Dark Slate Grey', value:'darkslategrey', theme:'js puns'},
-  {color:'Gold', value:'gold', theme:'js puns'},
-  {color:'Tomato', value:'tomato', theme:'heart js'},
-  {color:'Steel Blue', value:'steelblue', theme:'heart js'},
-  {color:'Dim Grey', value:'dimgrey', theme:'heart js'},
-];
+let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr;
 
 //get elements
 const basicInfoFieldSet = document.getElementById('basic-info');
@@ -30,6 +20,7 @@ const firstColorOption = colorMenu.firstElementChild;
 const allColorOptions = colorMenu.children;
 const shirtThemeMenu = document.getElementById('design');
 const activitiesField = document.getElementsByClassName('activities')[0];
+const activitiesLabels = activitiesField.getElementsByTagName('label');
 
 //create elements
 const colorOptionPlaceholder = document.createElement('option');
@@ -48,7 +39,7 @@ const removeItem = (item) => {
 
 
 /**********************************************************************
-FUNCTIONS RELATED TO JOB SELECTION
+RELATED TO JOB SELECTION
 **********************************************************************/
 
 //checks job select input, returns true if "other" is selected, false if not
@@ -79,8 +70,18 @@ const appendOtherJobInput = () => {
 
 
 /**********************************************************************
-FUNCTIONS RELATED TO T-SHIRT SELECTION
+RELATED TO T-SHIRT SELECTION
 **********************************************************************/
+
+//array for all shirt color options. color, value, and theme properties are required.
+const shirtColorOptionsArr = [
+  {color:'Cornflower Blue', value:'cornflowerblue', theme:'js puns'},
+  {color:'Dark Slate Grey', value:'darkslategrey', theme:'js puns'},
+  {color:'Gold', value:'gold', theme:'js puns'},
+  {color:'Tomato', value:'tomato', theme:'heart js'},
+  {color:'Steel Blue', value:'steelblue', theme:'heart js'},
+  {color:'Dim Grey', value:'dimgrey', theme:'heart js'}
+];
 
 //removes color options from HTML - though it's more simple to set display to none, removing these elements cleans up the HTML. a new list will be appended
 const removeHTMLColorOptions = (removeColors) => {
@@ -144,13 +145,78 @@ const setSelected = (list) => {
   }
 }
 
+
+
 /**********************************************************************
-FUNCTIONS RELATED TO REGISTER FOR ACTIVITIES
+RELATED TO REGISTER FOR ACTIVITIES
 **********************************************************************/
 
+//array holding info from activities section, uses name property to match with actvitiesLables.
+const activitiesArr = [
+  {name:'all', activity:'Main Conference', price:'$200'},
+  {name:'js-frameworks', activity:'JavaScript Frameworks Workshop', date:'Tuesday', time:'9am-12pm', price:'$100'},
+  {name:'js-libs', activity:'JavaScript Libraries Workshop', date:'Tuesday', time:'1pm-4pm', price:'100'},
+  {name:'express', activity:'Express Workshop', date:'Tuesday', time:'9am-12pm', price:'$100'},
+  {name:'node', activity:'Node.js Workshop', date:'Tuesday', time:'1pm-4pm', price:'$100'},
+  {name:'build-tools', activity:'Build tools Workshop', date:'Wednesday', time:'9am-12pm', price:'$100'},
+  {name:'npm', activity:'npm Workshop', date:'Wednesday', time:'1pm-4pm', price:'$100'}
+];
 
-// const isChecked = e.target.checked;
+//returns true if both date and time conflict
+const checkForConflict = (checkedActivity, activityArr) => {
+  if (checkedArr.name !== activityArr.name) { //prevents the same activity from being returned as a conflicting activity
+    if (checkedArr.date === activityArr.date && checkedArr.time === activityArr.time) { //if both date and time match
+      return true; //then the conflict is true
+    }
+  }
+}
 
+//accepts an input to grey out and disable, for conflicting activities
+const greyOut = (activityName) => {
+  for (let i=0; i<activitiesLabels.length; i++) {
+    if (activityName === activitiesLabels[i].firstElementChild.name) { //takes the name and finds the label element
+      activitiesLabels[i].style.color = '#888'; //turns input label grey
+      activitiesLabels[i].firstElementChild.setAttribute('disabled', ''); //disables insput element
+    }
+  }
+}
+
+//accepts an input to change from greyOut to defult
+const cancelGreyOut = (activityName) => {
+  for (let i=0; i<activitiesLabels.length; i++) {
+    if (activityName === activitiesLabels[i].firstElementChild.name) { //takes the name and finds the label element
+      activitiesLabels[i].style.color = '#000'; //turns input label black
+      activitiesLabels[i].firstElementChild.removeAttribute('disabled', ''); //disables insput element
+    }
+  }
+}
+
+//matches the checked element with the correct array object, stores object in global variable
+const matchChecked = (checkedName, arr) => {
+  for (let i=0; i<arr.length; i++) {
+    if (checkedName === arr[i].name) { //if checked element name matches array object name
+      checkedArr = arr[i]; //then store the array object in variable
+      return;
+    }
+  }
+}
+
+//checks for conflicting activities and greys them out or restors defult, depending on if checked or unchecked
+const getConflictingElements = (checkedActivity, arr, checkedOrNot) => {
+  for (let i=0; i<arr.length; i++) {
+    //if checked, then find confilicting activities and grey them out, if not checked (just unchecked), then find confilicting element (currently greyed out) and restore defults
+    checkedOrNot ? checkForConflict(checkedActivity, arr[i]) && greyOut(arr[i].name) : checkForConflict(checkedActivity, arr[i]) && cancelGreyOut(arr[i].name);
+  }
+}
+
+//gets checked input, matches it to its array object equivilent, greys out the conflicting activities
+const activitiesCheck = (e) => {
+  const checkedActivity = e.target; //stores checked input
+  const isChecked = checkedActivity.checked; //true or false
+  const checkedActivityName = checkedActivity.name; //stores checkedActivity (input element) name property
+  matchChecked(checkedActivityName, activitiesArr); //matches checked activity with corresponding array element (each activity in the HTML has a matching array element in activitiesArr)
+  getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets conflicting activities (if any) and greys out or cancels grey out appropriately (if checked or unchecked)
+}
 
 
 
@@ -176,25 +242,21 @@ addNewHTMLColorMenu();
 EVENT LISTENERS
 **********************************************************************/
 
-//listens for select box to change
+//listens for job select box to change
 jobSelect.addEventListener('change', () => {
   jobOtherFound() && removeOtherTitle(); //if jobOtherFound is true, removes jobOtherTitle box; if false, nothing
   jobValueCheck() && appendOtherJobInput(); //if jobValueCheck is true, appends "other" job text box; if false, nothing
 });
 
+//listens for tshirt design select box to change
 shirtThemeMenu.addEventListener('change', () => {
   getColorOptions();
   toggleColorDiv();
 });
 
 activitiesField.addEventListener('change', (e) => {
-  const checkbox = e.target;
-  const isChecked = checkbox.checked;
-  const lable = checkbox.parentNode;
+activitiesCheck(e);
 });
-
-
-
 
 
 
