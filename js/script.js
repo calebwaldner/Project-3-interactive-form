@@ -8,7 +8,7 @@ GLOBAL VARIABLE DECLARATIONS
 **********************************************************************/
 
 //variable declarations
-let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr;
+let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0;
 
 //get elements
 const basicInfoFieldSet = document.getElementById('basic-info');
@@ -24,6 +24,7 @@ const activitiesLabels = activitiesField.getElementsByTagName('label');
 
 //create elements
 const colorOptionPlaceholder = document.createElement('option');
+const activitiesTotalH2 = document.createElement('h2');
 
 
 
@@ -153,13 +154,13 @@ RELATED TO REGISTER FOR ACTIVITIES
 
 //array holding info from activities section, uses name property to match with actvitiesLables.
 const activitiesArr = [
-  {name:'all', activity:'Main Conference', price:'$200'},
-  {name:'js-frameworks', activity:'JavaScript Frameworks Workshop', date:'Tuesday', time:'9am-12pm', price:'$100'},
-  {name:'js-libs', activity:'JavaScript Libraries Workshop', date:'Tuesday', time:'1pm-4pm', price:'100'},
-  {name:'express', activity:'Express Workshop', date:'Tuesday', time:'9am-12pm', price:'$100'},
-  {name:'node', activity:'Node.js Workshop', date:'Tuesday', time:'1pm-4pm', price:'$100'},
-  {name:'build-tools', activity:'Build tools Workshop', date:'Wednesday', time:'9am-12pm', price:'$100'},
-  {name:'npm', activity:'npm Workshop', date:'Wednesday', time:'1pm-4pm', price:'$100'}
+  {name:'all', activity:'Main Conference', price:200},
+  {name:'js-frameworks', activity:'JavaScript Frameworks Workshop', date:'Tuesday', time:'9am-12pm', price:100},
+  {name:'js-libs', activity:'JavaScript Libraries Workshop', date:'Tuesday', time:'1pm-4pm', price:100},
+  {name:'express', activity:'Express Workshop', date:'Tuesday', time:'9am-12pm', price:100},
+  {name:'node', activity:'Node.js Workshop', date:'Tuesday', time:'1pm-4pm', price:100},
+  {name:'build-tools', activity:'Build tools Workshop', date:'Wednesday', time:'9am-12pm', price:100},
+  {name:'npm', activity:'npm Workshop', date:'Wednesday', time:'1pm-4pm', price:100}
 ];
 
 //returns true if both date and time conflict
@@ -209,13 +210,21 @@ const getConflictingElements = (checkedActivity, arr, checkedOrNot) => {
   }
 }
 
-//gets checked input, matches it to its array object equivilent, greys out the conflicting activities
-const activitiesCheck = (e) => {
-  const checkedActivity = e.target; //stores checked input
-  const isChecked = checkedActivity.checked; //true or false
-  const checkedActivityName = checkedActivity.name; //stores checkedActivity (input element) name property
-  matchChecked(checkedActivityName, activitiesArr); //matches checked activity with corresponding array element (each activity in the HTML has a matching array element in activitiesArr)
-  getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets conflicting activities (if any) and greys out or cancels grey out appropriately (if checked or unchecked)
+//shows activities price total if the total is more than $0
+const toggleActivitiesTotal = () => {
+  totalPrice <= 0 ? activitiesTotalH2.style.display = 'none' : activitiesTotalH2.style.display = 'block';
+}
+
+//gets to price of the activity, stores in global variable
+const getActivityPrice = (activity) => {
+  activityPrice = activity.price;
+  return activityPrice;
+}
+
+//if the activity was just checked (true), add activity price to total price (global variable), if unchecked, subtract activity price from total price
+const updateActivityPrice = (checked) => {
+  checked ? totalPrice += activityPrice : totalPrice -= activityPrice;
+  activitiesTotalH2.innerHTML = 'Total: $' + totalPrice;
 }
 
 
@@ -230,12 +239,14 @@ document.getElementById('name').focus();
 //removes color div
 colorDiv.style.display = 'none';
 
+//appends total price h2 element
+activitiesField.appendChild(activitiesTotalH2);
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
 addColorPlaceholder();
 addNewHTMLColorMenu();
-
+toggleActivitiesTotal();
 
 
 /**********************************************************************
@@ -255,7 +266,14 @@ shirtThemeMenu.addEventListener('change', () => {
 });
 
 activitiesField.addEventListener('change', (e) => {
-activitiesCheck(e);
+const checkedActivity = e.target; //stores checked input
+const isChecked = checkedActivity.checked; //true or false
+const checkedActivityName = checkedActivity.name; //stores checkedActivity (input element) name property
+matchChecked(checkedActivityName, activitiesArr); //matches checked activity with corresponding array element (each activity in the HTML has a matching array element in activitiesArr)
+getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets conflicting activities (if any) and greys out or cancels grey out appropriately (if checked or unchecked)
+getActivityPrice(checkedArr); //get price of activity
+updateActivityPrice(isChecked); //add or subtract the activity price from total price
+toggleActivitiesTotal(); //show total if it is greater than $0
 });
 
 
