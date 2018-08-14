@@ -301,7 +301,8 @@ hide(colorDiv);
 activitiesField.appendChild(activitiesTotalH2);
 
 //disables the first payment option so I cannot be re-selected
-paymentOptions[0].disabled = 'true';
+paymentOptions[0].style.display = 'none';
+paymentOptions[1].selected = true;
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
@@ -310,6 +311,8 @@ addNewHTMLColorMenu();
 toggleActivitiesTotal();
 hideAllPaymentDivs();
 giveAllMatchingClass();
+show(creditCardDiv);
+
 
 
 /**********************************************************************
