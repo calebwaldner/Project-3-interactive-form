@@ -11,6 +11,7 @@ GLOBAL VARIABLE DECLARATIONS
 let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0;
 
 //get elements
+const formElement = document.getElementsByTagName('form')[0];
 const basicInfoFieldSet = document.getElementById('basic-info');
 const jobSelect = document.getElementById('title');
 const jobOtherInput = document.getElementById('other-title');
@@ -21,6 +22,12 @@ const allColorOptions = colorMenu.children;
 const shirtThemeMenu = document.getElementById('design');
 const activitiesField = document.getElementsByClassName('activities')[0];
 const activitiesLabels = activitiesField.getElementsByTagName('label');
+const selectPaymentMethod = document.getElementById('payment');
+const paymentOptions = selectPaymentMethod.children; //array containing option elements; 1 = credit card, 2 = paypal, 3 = bitcoin
+const paymentInfoFieldset = formElement.children[3];
+const creditCardDiv = document.getElementById('credit-card');
+const payPalDiv = paymentInfoFieldset.children[4];
+const bitcoinDiv = paymentInfoFieldset.children[5];
 
 //create elements
 const colorOptionPlaceholder = document.createElement('option');
@@ -35,6 +42,16 @@ GENERAL FUNCTIONS
 //removes an item
 const removeItem = (item) => {
   item.remove();
+}
+
+//sets the element display style to none
+const hide = (element) => {
+  element.style.display = 'none';
+}
+
+//sets the element display style to block
+const show = (element) => {
+  element.style.display = 'block';
 }
 
 
@@ -108,7 +125,7 @@ const addNewHTMLColorMenu = () => {
     colorOption.innerHTML = shirtColorOptionsArr[i].color;
     colorOption.value = shirtColorOptionsArr[i].value;
     colorOption.theme = shirtColorOptionsArr[i].theme;
-    colorOption.style.display = 'none'; //all options hidden by defalt
+    hide(colorOption); //all options hidden by defalt
   }
 }
 
@@ -118,10 +135,10 @@ const getColorOptions = () => {
   let currentColorList = []; //empties array, staged to be stored with filtered colors
   for (let i=0; i<colorMenu.length; i++) { //loops through each color to match with theme
     if (colorMenu[i].theme === selTheme) { //if tshirt color theme matches selected theme
-      colorMenu[i].style.display = 'block'; //then set display style to block (show it)
+      show(colorMenu[i]); //then set display style to block (show it)
       currentColorList.push(colorMenu[i]); //and push color to currentColorList array
     } else {
-      colorMenu[i].style.display = 'none'; //otherwise, set display style to none (hide it)
+      hide(colorMenu[i]) //otherwise, set display style to none (hide it)
     }
   }
   setSelected(currentColorList); //sets first option as selected
@@ -130,9 +147,9 @@ const getColorOptions = () => {
 //toggles color div if shirt theme is selected
 const toggleColorDiv = () => {
   if (colorMenu.value === '← Please select a design') { //if colorMenu is the placeholder
-    colorDiv.style.display = 'none'; // then hide the color div
+    hide(colorDiv) // then hide the color div
   } else {
-    colorDiv.style.display = 'block'; //otherwise show the color div
+    show(colorDiv); //otherwise show the color div
   }
 }
 
@@ -141,7 +158,7 @@ const setSelected = (list) => {
   if (list.length > 0) { //if there are any color options currently displayed
     list[0].selected = true; //then select the first one
   } else { //placeholder is selected and visible
-    colorOptionPlaceholder.style.display = 'block';
+    show(colorOptionPlaceholder);
     colorOptionPlaceholder.selected = true;
   }
 }
@@ -212,7 +229,7 @@ const getConflictingElements = (checkedActivity, arr, checkedOrNot) => {
 
 //shows activities price total if the total is more than $0
 const toggleActivitiesTotal = () => {
-  totalPrice <= 0 ? activitiesTotalH2.style.display = 'none' : activitiesTotalH2.style.display = 'block';
+  totalPrice <= 0 ? hide(activitiesTotalH2) : show(activitiesTotalH2);
 }
 
 //gets to price of the activity, stores in global variable
@@ -230,6 +247,47 @@ const updateActivityPrice = (checked) => {
 
 
 /**********************************************************************
+RELATED TO PAYMENT INFO
+**********************************************************************/
+
+//hides all payment divs
+const hideAllPaymentDivs = () => {
+  hide(creditCardDiv);
+  hide(payPalDiv);
+  hide(bitcoinDiv);
+}
+
+//hides previous payment divs and shows new div
+const togglePaymentDiv = (div) => {
+  hideAllPaymentDivs();
+  show(div);
+}
+
+//takes two elements and gives them both the same class
+const giveMatchingClass = (element1, element2, newClass) => {
+  element1.className = newClass;
+  element2.className = newClass;
+}
+
+//gives the payment option elements and the payment divs matching classes
+const giveAllMatchingClass = () => {
+  giveMatchingClass(paymentOptions[1], creditCardDiv, 'credit-card');
+  giveMatchingClass(paymentOptions[2], payPalDiv, 'paypal');
+  giveMatchingClass(paymentOptions[3], bitcoinDiv, 'bitcoin');
+}
+
+//shows selected payment div depending on selected option
+const showSelectedPayment = () => {
+  //stores the option element that was selected from select#payment element
+  const selectedPayment = selectPaymentMethod.options[selectPaymentMethod.selectedIndex];
+  //gets list of all elements with selected class. stores the second element from list (in HTML the div is second, the option is first)
+  let showDiv = document.getElementsByClassName(selectedPayment.classList[0])[1];
+  togglePaymentDiv(showDiv)
+}
+
+
+
+/**********************************************************************
 INITIAL CODE RUN ON PAGE LOAD
 **********************************************************************/
 
@@ -237,16 +295,21 @@ INITIAL CODE RUN ON PAGE LOAD
 document.getElementById('name').focus();
 
 //removes color div
-colorDiv.style.display = 'none';
+hide(colorDiv);
 
 //appends total price h2 element
 activitiesField.appendChild(activitiesTotalH2);
+
+//disables the first payment option so I cannot be re-selected
+paymentOptions[0].disabled = 'true';
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
 addColorPlaceholder();
 addNewHTMLColorMenu();
 toggleActivitiesTotal();
+hideAllPaymentDivs();
+giveAllMatchingClass();
 
 
 /**********************************************************************
@@ -276,6 +339,10 @@ updateActivityPrice(isChecked); //add or subtract the activity price from total 
 toggleActivitiesTotal(); //show total if it is greater than $0
 });
 
+//listens for payment method selection
+selectPaymentMethod.addEventListener('change', () => {
+  showSelectedPayment();
+});
 
 
 /**********************************************************************
