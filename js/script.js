@@ -8,9 +8,10 @@ GLOBAL VARIABLE DECLARATIONS
 **********************************************************************/
 
 //variable declarations
-let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0;
+let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0, checkedActivities=0, selectedPayment;
 
 //get elements
+const nameInput = document.getElementById('name');
 const formElement = document.getElementsByTagName('form')[0];
 const basicInfoFieldSet = document.getElementById('basic-info');
 const jobSelect = document.getElementById('title');
@@ -26,8 +27,12 @@ const selectPaymentMethod = document.getElementById('payment');
 const paymentOptions = selectPaymentMethod.children; //array containing option elements; 1 = credit card, 2 = paypal, 3 = bitcoin
 const paymentInfoFieldset = formElement.children[3];
 const creditCardDiv = document.getElementById('credit-card');
+const CCNumInput = document.getElementById('cc-num');
+const CCZipInput = document.getElementById('zip');
+const CCCVVInput = document.getElementById('cvv');
 const payPalDiv = paymentInfoFieldset.children[4];
 const bitcoinDiv = paymentInfoFieldset.children[5];
+const submitButton = document.getElementsByTagName('button')[0];
 
 //create elements
 const colorOptionPlaceholder = document.createElement('option');
@@ -52,6 +57,22 @@ const hide = (element) => {
 //sets the element display style to block
 const show = (element) => {
   element.style.display = 'block';
+}
+
+const requiredOn  = (element) => {
+  element.required = true;
+}
+
+const requiredOff  = (element) => {
+  element.required = false;
+}
+
+const patternOn  = (element, patternString) => {
+  element.pattern = patternString;
+}
+
+const patternOff  = (element) => {
+  element.pattern = false;
 }
 
 
@@ -244,6 +265,12 @@ const updateActivityPrice = (checked) => {
   activitiesTotalH2.innerHTML = 'Total: $' + totalPrice;
 }
 
+//counts number of checked activities
+const getNumberChecked = (checked) => {
+  //if true, plus one checked activity; if false, minus one
+  checked ? checkedActivities += 1 : checkedActivities -= 1;
+}
+
 
 
 /**********************************************************************
@@ -278,8 +305,8 @@ const giveAllMatchingClass = () => {
 
 //shows selected payment div depending on selected option
 const showSelectedPayment = () => {
-  //stores the option element that was selected from select#payment element
-  const selectedPayment = selectPaymentMethod.options[selectPaymentMethod.selectedIndex];
+  //stores the option element that was selected from select#payment element in global variable
+  selectedPayment = selectPaymentMethod.options[selectPaymentMethod.selectedIndex];
   //gets list of all elements with selected class. stores the second element from list (in HTML the div is second, the option is first)
   let showDiv = document.getElementsByClassName(selectedPayment.classList[0])[1];
   togglePaymentDiv(showDiv)
@@ -288,21 +315,53 @@ const showSelectedPayment = () => {
 
 
 /**********************************************************************
+FORM VALIDATION
+**********************************************************************/
+
+//prevents form from submitting with name input left blank
+requiredOn(nameInput);
+
+//prevents form from submitting if no activity is selected
+const needCheckedActivity = (e) => {
+  checkedActivities === 0 ? e.preventDefault() : '';
+}
+
+//toggles all CC inputs validations off
+const toggleCCOff = () => {
+  requiredOff(CCNumInput);
+  requiredOff(CCZipInput);
+  requiredOff(CCCVVInput);
+  patternOff(CCNumInput);
+  patternOff(CCZipInput);
+  patternOff(CCCVVInput);
+}
+
+//toggles all CC inputs requierments and patterns on, with regex for pattern
+const toggleCCOn = () => {
+  requiredOn(CCNumInput);
+  requiredOn(CCZipInput);
+  requiredOn(CCCVVInput);
+  patternOn(CCNumInput, '[0-9]{13,16}');
+  patternOn(CCZipInput, '[0-9]{5,}');
+  patternOn(CCCVVInput, '[0-9]{3}');
+}
+
+//if credit card is selected, turn on CC validation; if not, turn it off
+const requiredCC = () => {
+  selectPaymentMethod.selectedIndex === 1 ? toggleCCOn() : toggleCCOff();
+}
+
+
+
+/**********************************************************************
 INITIAL CODE RUN ON PAGE LOAD
 **********************************************************************/
 
-//sets focus to name input on page load
-document.getElementById('name').focus();
-
-//removes color div
-hide(colorDiv);
-
-//appends total price h2 element
-activitiesField.appendChild(activitiesTotalH2);
-
-//disables the first payment option so I cannot be re-selected
-paymentOptions[0].style.display = 'none';
-paymentOptions[1].selected = true;
+nameInput.focus(); //sets focus to name input on page load
+hide(colorDiv); //removes color div
+activitiesField.appendChild(activitiesTotalH2); //appends total price h2 element
+paymentOptions[0].style.display = 'none'; //hides the payment placeholder option
+paymentOptions[1].selected = true; //selects credit card as defult payment option
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
@@ -312,6 +371,7 @@ toggleActivitiesTotal();
 hideAllPaymentDivs();
 giveAllMatchingClass();
 show(creditCardDiv);
+requiredCC();
 
 
 
@@ -331,6 +391,7 @@ shirtThemeMenu.addEventListener('change', () => {
   toggleColorDiv();
 });
 
+//listens for actifities to be checked
 activitiesField.addEventListener('change', (e) => {
 const checkedActivity = e.target; //stores checked input
 const isChecked = checkedActivity.checked; //true or false
@@ -340,11 +401,19 @@ getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets confli
 getActivityPrice(checkedArr); //get price of activity
 updateActivityPrice(isChecked); //add or subtract the activity price from total price
 toggleActivitiesTotal(); //show total if it is greater than $0
+getNumberChecked(isChecked); //counts number of checked inputs
 });
 
 //listens for payment method selection
 selectPaymentMethod.addEventListener('change', () => {
   showSelectedPayment();
+  requiredCC(); //on or off, depending on if CC is selected payment method
+  console.log(selectPaymentMethod.selectedIndex);
+});
+
+//listens for submit button
+submitButton.addEventListener('click', (e) => {
+  needCheckedActivity(e);
 });
 
 
