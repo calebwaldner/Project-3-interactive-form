@@ -8,10 +8,14 @@ GLOBAL VARIABLE DECLARATIONS
 **********************************************************************/
 
 //variable declarations
-let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0, checkedActivities=0, selectedPayment;
+let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0, checkedActivities=0, selectedPayment, defultLabelText=[];
 
 //get elements
+const header = document.getElementsByTagName('header')[0];
+const inputLabels = document.getElementsByTagName('label');
+const inputElements = document.getElementsByTagName('input');
 const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('mail');
 const formElement = document.getElementsByTagName('form')[0];
 const basicInfoFieldSet = document.getElementById('basic-info');
 const jobSelect = document.getElementById('title');
@@ -22,6 +26,7 @@ const firstColorOption = colorMenu.firstElementChild;
 const allColorOptions = colorMenu.children;
 const shirtThemeMenu = document.getElementById('design');
 const activitiesField = document.getElementsByClassName('activities')[0];
+const activitiesLegendElement = activitiesField.getElementsByTagName('legend')[0];
 const activitiesLabels = activitiesField.getElementsByTagName('label');
 const selectPaymentMethod = document.getElementById('payment');
 const paymentOptions = selectPaymentMethod.children; //array containing option elements; 1 = credit card, 2 = paypal, 3 = bitcoin
@@ -64,7 +69,7 @@ const requiredOn  = (element) => {
 }
 
 const requiredOff  = (element) => {
-  element.required = false;
+  element.removeAttribute('required');
 }
 
 const patternOn  = (element, patternString) => {
@@ -72,7 +77,7 @@ const patternOn  = (element, patternString) => {
 }
 
 const patternOff  = (element) => {
-  element.pattern = false;
+  element.removeAttribute('pattern');
 }
 
 
@@ -190,7 +195,7 @@ const setSelected = (list) => {
 RELATED TO REGISTER FOR ACTIVITIES
 **********************************************************************/
 
-//array holding info from activities section, uses name property to match with actvitiesLables.
+//array holding info from activities section, uses name property to match with actvitiesLabels.
 const activitiesArr = [
   {name:'all', activity:'Main Conference', price:200},
   {name:'js-frameworks', activity:'JavaScript Frameworks Workshop', date:'Tuesday', time:'9am-12pm', price:100},
@@ -318,38 +323,329 @@ const showSelectedPayment = () => {
 FORM VALIDATION
 **********************************************************************/
 
+/*
+Alot of credit given to Ana Sampaio who wrote an artical for The UI Files. This article was a major resource used in creating this form validation.
+https://medium.com/the-ui-files/form-validation-with-javascript-4fcf4dd32846
+*/
+
+
+//array of error messages, used for unique input validation
+const labelErrorMessages = [
+  {label:'name', errorMessage: 'Please include your full name.'}, 
+  {label:'mail', errorMessage: 'Please include a valid email'}, 
+  {label:'title', errorMessage: '– Please provide a job title'}, 
+  {label:'design', errorMessage: 'Please select a t-shirt design'}, 
+  {label:'activity', errorMessage: 'Please select an activity'}, 
+  {label:'cc-num', errorMessage: 'Must be a valid CC number'}, 
+  {label:'zip', errorMessage: ''}, 
+  {label:'cvv', errorMessage: ''}, 
+];
+
+//appends and styles main error message at the top of the page, toggle based off true or false parameter
+const toggleMainError = tOrF => {
+  document.contains(document.getElementById('main-error-message')) ? document.getElementById('main-error-message').remove() : '';
+  //creates and styles div to hold error message
+  const mainErrorDiv = document.createElement('div');
+  mainErrorDiv.id = 'main-error-message';
+  mainErrorDiv.style.color = 'white';
+  mainErrorDiv.style.backgroundColor = '#fc000a';
+  mainErrorDiv.style.marginTop = '1.5em';
+  mainErrorDiv.style.marginBottom = '-1.8em';
+  mainErrorDiv.style.width = '100%';
+  mainErrorDiv.style.display = 'flex';
+  mainErrorDiv.style.justifyContent = 'left';
+  mainErrorDiv.style.alignItems = 'center';
+  mainErrorDiv.style.padding = '10px 0 10px 30px';
+  //creates and styles exclamation mark image
+  //Image by Sarang (Unicode U+0021) [Public domain], via Wikimedia Commons
+  const exclamationMark = document.createElement('img');
+  exclamationMark.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Exclamation_encircled.svg/32px-Exclamation_encircled.svg.png';
+  exclamationMark.style.width = '32px';
+  exclamationMark.style.filter = 'invert(100%)';
+  exclamationMark.style.marginRight = '10px';
+  exclamationMark.alt = 'Exclamation encircled';
+  //creates and styles error message text
+  const mainErrorText = document.createElement('h3');
+  mainErrorText.style.margin = '0';
+  mainErrorText.textContent = 'Some fields are incorrect';
+  //if true, show div; if false, remove div
+  if (tOrF) {
+    //appends img and h3 to div, div appended to header
+    mainErrorDiv.appendChild(exclamationMark);
+    mainErrorDiv.appendChild(mainErrorText);
+    header.appendChild(mainErrorDiv);
+  } else {
+    document.getElementById('main-error-message').remove();
+  }
+}
+
+//changes border to red if true, default if false
+const errorHighlightBorder = (element, tOrF) => {
+  if (tOrF) {
+    element.style.borderColor = '#fc000a';
+    element.style.borderWidth = '2px';
+  } else {
+    element.style.borderColor = '';
+    element.style.borderWidth = '';
+  }
+}
+
+//changes text color to red if true, default if false
+const errorHighlightText = (element, tOrF) => {
+  if (tOrF) {
+    element.style.color = '#fc000a';
+  } else {
+    element.style.color = '';
+  }
+}
+
+//takes label name as string and returns associated input label element
+const getLabelElement = labelFor => {
+  let label;
+  for (let i=0; i<inputLabels.length; i++) {
+    inputLabels[i].htmlFor === labelFor ? label = inputLabels[i] :'';
+  }
+  return label;
+}
+
+//taks string as parameter and returns input element with matching id
+const getInputElement = labelFor => {
+  let input;
+  for (let i=0; i<inputElements.length; i++) {
+    inputElements[i].id === labelFor ? input = inputElements[i] :'';
+  }
+  return input;
+}
+
+//gets error message from array based off parameter, takes a string, must match label property from arrey
+const getErrorMessage = forLabel => {
+  let currentMessage;
+  for (i=0; i<labelErrorMessages.length; i++) {
+    if (labelErrorMessages[i].label === forLabel) {
+      currentMessage = labelErrorMessages[i].errorMessage;
+    }
+  }
+  return currentMessage;
+}
+
+const showInputErrorMessage = (labelName, tOrF, message) => {
+  const currentLebelElement = getLabelElement(labelName);
+  const currentInputElement = getInputElement(labelName);
+  const errorSpan = document.createElement('span');
+  if (tOrF && currentLebelElement.children.length === 0) {
+    currentLebelElement.appendChild(errorSpan);
+    errorSpan.innerHTML = message;
+  } else if (!tOrF && currentLebelElement.children.length >= 1){
+    currentLebelElement.children[0].remove();
+  }
+  errorHighlightText(currentLebelElement, tOrF);
+  errorHighlightBorder(currentInputElement, tOrF);
+}
+
+
+///////////// NAME VALIDATION /////////////
+
 //prevents form from submitting with name input left blank
 requiredOn(nameInput);
 
+//Custom message for type of validation error
+nameInput.dataset.valueMissing = ' Please include your full name.';
+
+//if focus leaves name input while it is blank, then show invalid formatting
+nameInput.addEventListener('blur', () => {
+  if (!nameInput.checkValidity()) {
+    showInputErrorMessage('name', true, nameInput.dataset.valueMissing);
+  } else {
+    showInputErrorMessage('name', false);
+  }
+});
+
+nameInput.addEventListener('focus', () => {
+  showInputErrorMessage('name', false);
+});
+
+///////////// EMAIL VALIDATION /////////////
+
+requiredOn(emailInput);
+
+emailInput.dataset.valueMissing = ' Please provide your email address.';
+emailInput.dataset.patternMismatch = ' Email must be properly formatted';
+
+//code courtesy of rnevius from Stack Overflow, https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+const validateEmailPattern = email => {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
+const validateEmail = () => {
+  if (!emailInput.checkValidity() || !validateEmailPattern(emailInput.value)) {
+    if (emailInput.validity.valueMissing) {
+      showInputErrorMessage('mail', true, emailInput.dataset.valueMissing);
+    } else if (validateEmailPattern(emailInput.value) === false) {
+      showInputErrorMessage('mail', true, emailInput.dataset.patternMismatch);
+    }
+  } else {
+    showInputErrorMessage('mail', false);
+  }
+}
+
+emailInput.addEventListener('blur', () => {
+  validateEmail();
+});
+
+emailInput.addEventListener('keyup', () => {
+  if (!validateEmailPattern(emailInput.value)) {
+    errorHighlightBorder(emailInput, true)
+    } else {
+    errorHighlightBorder(emailInput, false);
+  }
+});
+
+emailInput.addEventListener('focus', () => {
+  showInputErrorMessage('mail', false);
+});
+
+///////////// REGISTER FOR ACTIVITIES VALIDATION /////////////
+
 //prevents form from submitting if no activity is selected
-const needCheckedActivity = (e) => {
-  checkedActivities === 0 ? e.preventDefault() : '';
+
+const showLegendErrorMessage = (tOrF, message) => {
+  const currentElement = activitiesLegendElement;
+  const errorSpan = document.createElement('span');
+  if (tOrF && currentElement.children.length === 0) {
+    currentElement.appendChild(errorSpan);
+    errorSpan.innerHTML = message;
+    currentElement.parentElement.validity.valid = false;
+  } else if (!tOrF && currentElement.children.length >= 1){
+    currentElement.children[0].remove();
+  }
+  errorHighlightText(activitiesLegendElement, tOrF);
 }
 
-//toggles all CC inputs validations off
-const toggleCCOff = () => {
-  requiredOff(CCNumInput);
-  requiredOff(CCZipInput);
-  requiredOff(CCCVVInput);
-  patternOff(CCNumInput);
-  patternOff(CCZipInput);
-  patternOff(CCCVVInput);
+const validateActivities = () => {
+  if (checkedActivities === 0) { //checkedActivities stores the total number of activities checked
+    showLegendErrorMessage(true, ' – At least one activity must be selected');
+  } else {
+    showLegendErrorMessage(false, '');
+  }
 }
 
-//toggles all CC inputs requierments and patterns on, with regex for pattern
-const toggleCCOn = () => {
-  requiredOn(CCNumInput);
-  requiredOn(CCZipInput);
-  requiredOn(CCCVVInput);
-  patternOn(CCNumInput, '[0-9]{13,16}');
-  patternOn(CCZipInput, '[0-9]{5,}');
-  patternOn(CCCVVInput, '[0-9]{3}');
+
+///////////// CREDIT CARD VALIDATION /////////////
+
+CCNumInput.dataset.valueMissing = ' Required';
+CCZipInput.dataset.valueMissing = ' Required';
+CCCVVInput.dataset.valueMissing = ' Required';
+CCNumInput.dataset.patternMismatch = ' Must be 13-16 digits';
+CCZipInput.dataset.patternMismatch = ' To short';
+CCCVVInput.dataset.patternMismatch = ' 3 digits only';
+
+const paymentSelected = () => {
+  let value;
+  selectPaymentMethod.selectedIndex === 1 ? value = true : value = false;
+  return value;
 }
 
 //if credit card is selected, turn on CC validation; if not, turn it off
 const requiredCC = () => {
-  selectPaymentMethod.selectedIndex === 1 ? toggleCCOn() : toggleCCOff();
+  //toggles all CC inputs validations off
+  const toggleCCOff = () => {
+    requiredOff(CCNumInput);
+    requiredOff(CCZipInput);
+    requiredOff(CCCVVInput);
+    patternOff(CCNumInput);
+    patternOff(CCZipInput);
+    patternOff(CCCVVInput);
+  }
+  //toggles all CC inputs requierments and patterns on, with regex for pattern
+  const toggleCCOn = () => {
+    requiredOn(CCNumInput);
+    requiredOn(CCZipInput);
+    requiredOn(CCCVVInput);
+    patternOn(CCNumInput, '[0-9]{13,16}');
+    patternOn(CCZipInput, '[0-9]{5,}');
+    patternOn(CCCVVInput, '[0-9]{3}');
+  }
+  paymentSelected() ? toggleCCOn() : toggleCCOff();
 }
+
+const validateInput = (input, stringName) => {
+  if (!input.checkValidity()) {
+    if (input.validity.valueMissing) {
+      showInputErrorMessage(stringName, true, input.dataset.valueMissing);
+    } else if (input.validity.patternMismatch) {
+      showInputErrorMessage(stringName, true, input.dataset.patternMismatch);
+    } else {
+      showInputErrorMessage(stringName, false);
+    }
+  }
+}
+
+CCNumInput.addEventListener('blur', () => {
+  validateInput(CCNumInput, 'cc-num');
+});
+
+CCNumInput.addEventListener('focus', () => {
+  showInputErrorMessage('cc-num', false);
+});
+
+CCNumInput.addEventListener('keyup', () => {
+  if (CCNumInput.validity.patternMismatch) {
+    errorHighlightBorder(CCNumInput, true)
+    } else {
+    errorHighlightBorder(CCNumInput, false);
+  }
+});
+
+CCZipInput.addEventListener('blur', () => {
+  validateInput(CCZipInput, 'zip');
+});
+
+CCZipInput.addEventListener('focus', () => {
+  showInputErrorMessage('zip', false);
+});
+
+CCZipInput.addEventListener('keyup', () => {
+  if (CCZipInput.validity.patternMismatch) {
+    errorHighlightBorder(CCZipInput, true)
+    } else {
+    errorHighlightBorder(CCZipInput, false);
+  }
+});
+
+CCCVVInput.addEventListener('blur', () => {
+  validateInput(CCCVVInput, 'cvv');
+});
+
+CCCVVInput.addEventListener('focus', () => {
+  showInputErrorMessage('cvv', false);
+});
+
+CCCVVInput.addEventListener('keyup', () => {
+  if (CCCVVInput.validity.patternMismatch) {
+    errorHighlightBorder(CCCVVInput, true)
+    } else {
+    errorHighlightBorder(CCCVVInput, false);
+  }
+});
+
+
+///////////// SUBMIT VALIDATION /////////////
+
+// listens for submit button
+formElement.addEventListener('submit', (e) => {
+  if (!formElement.checkValidity() || checkedActivities === 0) { //checks whole form for validity errors, if there is at least one error, runs block of code below
+    console.log('there was an error');
+    e.preventDefault();
+    toggleMainError(true);
+    window.scroll(0,0);
+    validateEmail();
+    validateActivities();
+    validateInput(CCNumInput, 'cc-num');
+    validateInput(CCZipInput, 'zip');
+    validateInput(CCCVVInput, 'cvv');
+  }
+});
 
 
 
@@ -362,6 +658,7 @@ hide(colorDiv); //removes color div
 activitiesField.appendChild(activitiesTotalH2); //appends total price h2 element
 paymentOptions[0].style.display = 'none'; //hides the payment placeholder option
 paymentOptions[1].selected = true; //selects credit card as defult payment option
+formElement.noValidate = true; //turns off defult validation messages
 
 removeOtherTitle();
 removeHTMLColorOptions(colorMenu);
@@ -370,8 +667,8 @@ addNewHTMLColorMenu();
 toggleActivitiesTotal();
 hideAllPaymentDivs();
 giveAllMatchingClass();
-show(creditCardDiv);
-requiredCC();
+show(creditCardDiv); //shows CC payment option by defult
+requiredCC(); //requires CC by defult, since it is showing
 
 
 
@@ -402,19 +699,16 @@ getActivityPrice(checkedArr); //get price of activity
 updateActivityPrice(isChecked); //add or subtract the activity price from total price
 toggleActivitiesTotal(); //show total if it is greater than $0
 getNumberChecked(isChecked); //counts number of checked inputs
+validateActivities(); //checks validation after changes have been made to activities selection
 });
 
 //listens for payment method selection
 selectPaymentMethod.addEventListener('change', () => {
   showSelectedPayment();
   requiredCC(); //on or off, depending on if CC is selected payment method
-  console.log(selectPaymentMethod.selectedIndex);
 });
 
-//listens for submit button
-submitButton.addEventListener('click', (e) => {
-  needCheckedActivity(e);
-});
+
 
 
 /**********************************************************************
