@@ -521,11 +521,6 @@ emailInput.addEventListener('keyup', () => {
   validateEmail();
 });
 
-//when input has focus, turn error message off
-emailInput.addEventListener('focus', () => {
-  showInputErrorMessage('mail', false);
-});
-
 ///////////// REGISTER FOR ACTIVITIES VALIDATION /////////////
 
 //shows error message in activities legend element
