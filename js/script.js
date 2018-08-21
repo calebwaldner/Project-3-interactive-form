@@ -516,13 +516,9 @@ emailInput.addEventListener('blur', () => {
   validateEmail();
 });
 
-//while user types, change border style to indicate validity
+//while user types, email is validated and showes message
 emailInput.addEventListener('keyup', () => {
-  if (!validateEmailPattern(emailInput.value)) { //if email fails pattern test
-    errorHighlightBorder(emailInput, true); //apply red border style
-    } else {
-    errorHighlightBorder(emailInput, false); //else apply default border style
-  }
+  validateEmail();
 });
 
 //when input has focus, turn error message off
