@@ -450,7 +450,11 @@ const showInputErrorMessage = (labelName, tOrF, message) => {
   const currentLebelElement = getLabelElement(labelName); //takes labelName parameter, finds and stores label element
   const currentInputElement = getInputElement(labelName); //takes labelName parameter, finds and stores input element
   const errorSpan = document.createElement('span'); //creates span element for appending to label element
-  if (tOrF && currentLebelElement.children.length === 0) { //if true and if there already isn't a message displaying
+  if (tOrF) { //if true and if there already isn't a message displaying
+  
+    document.contains(currentLebelElement.children[0]) ? currentLebelElement.children[0].remove() : '';
+
+    // currentLebelElement.children[0].remove(); //remove current error message 
     currentLebelElement.appendChild(errorSpan); //append new span element
     errorSpan.innerHTML = message; //write message (parameter) in span element
   } else if (!tOrF && currentLebelElement.children.length >= 1){ //if false and if there is a child element present
@@ -516,8 +520,8 @@ emailInput.addEventListener('blur', () => {
   validateEmail();
 });
 
-//while user types, email is validated and showes message
-emailInput.addEventListener('keyup', () => {
+//while user types, change border style to indicate validity
+emailInput.addEventListener('keyup', () => { 
   validateEmail();
 });
 
