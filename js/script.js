@@ -1,45 +1,46 @@
-// Project notes:
-// https://www.evernote.com/shard/s9/nl/1104480/c7e6320e-9745-4da8-8983-f7458355affa/
-
-
 
 /**********************************************************************
 GLOBAL VARIABLE DECLARATIONS
 **********************************************************************/
 
-//variable declarations
-let jobOtherTitle, activitiesInputs, activitiesInputsName, checkedArr, activityPrice=0, totalPrice=0, checkedActivities=0, selectedPayment, defultLabelText=[];
+//// VARIABLE DECLARATIONS
 
-//get elements
-const header = document.getElementsByTagName('header')[0];
-const inputLabels = document.getElementsByTagName('label');
-const inputElements = document.getElementsByTagName('input');
-const nameInput = document.getElementById('name');
-const emailInput = document.getElementById('mail');
-const formElement = document.getElementsByTagName('form')[0];
-const basicInfoFieldSet = document.getElementById('basic-info');
-const jobSelect = document.getElementById('title');
-const jobOtherInput = document.getElementById('other-title');
-const colorDiv = document.getElementById('colors-js-puns');
-const colorMenu = document.getElementById('color');
-const firstColorOption = colorMenu.firstElementChild;
-const allColorOptions = colorMenu.children;
-const shirtThemeMenu = document.getElementById('design');
-const activitiesField = document.getElementsByClassName('activities')[0];
-const activitiesLegendElement = activitiesField.getElementsByTagName('legend')[0];
-const activitiesLabels = activitiesField.getElementsByTagName('label');
-const selectPaymentMethod = document.getElementById('payment');
+let jobOtherTitle, //used to determine if the "other job" input element is present or not
+    checkedArr, //used for storing the currently selected activities
+    activityPrice=0, //used to store the currently selected activity price
+    totalPrice=0, //used to store the current total price of all selected activities
+    checkedActivities=0, //used to tally how many activities are currently selected
+    selectedPayment; ////used to store the option element that was selected from select payment menu
+
+//// GET ELEMENTS
+
+const header = document.getElementsByTagName('header')[0]; //document header
+const inputLabels = document.getElementsByTagName('label'); //gets all label elements
+const inputElements = document.getElementsByTagName('input'); //gets all input elements
+const nameInput = document.getElementById('name'); //name input element
+const emailInput = document.getElementById('mail'); //email input element
+const formElement = document.getElementsByTagName('form')[0]; //gets the whole form element
+const basicInfoFieldSet = document.getElementById('basic-info'); //gets the basic info fieldset element
+const jobSelect = document.getElementById('title'); //gets the "job role" select element 
+const jobOtherInput = document.getElementById('other-title'); //gets the input element for "other job" option
+const colorDiv = document.getElementById('colors-js-puns'); //gets the color div for tshirt info
+const colorMenu = document.getElementById('color'); //gets the color select menu for tshirt info
+const shirtThemeMenu = document.getElementById('design'); //gets the "select theme" select menu
+const activitiesField = document.getElementsByClassName('activities')[0]; //gets the fieldset element for selecting an activity
+const activitiesLegendElement = activitiesField.getElementsByTagName('legend')[0]; //gets the legend element for activity selection
+const activitiesLabels = activitiesField.getElementsByTagName('label'); //gets the activity selection label elements
+const selectPaymentMethod = document.getElementById('payment'); //gets the select menu for payment selection
 const paymentOptions = selectPaymentMethod.children; //array containing option elements; 1 = credit card, 2 = paypal, 3 = bitcoin
-const paymentInfoFieldset = formElement.children[3];
-const creditCardDiv = document.getElementById('credit-card');
-const CCNumInput = document.getElementById('cc-num');
-const CCZipInput = document.getElementById('zip');
-const CCCVVInput = document.getElementById('cvv');
-const payPalDiv = paymentInfoFieldset.children[4];
-const bitcoinDiv = paymentInfoFieldset.children[5];
-const submitButton = document.getElementsByTagName('button')[0];
+const paymentInfoFieldset = formElement.children[3]; //gets the fieldset for payment info
+const creditCardDiv = document.getElementById('credit-card'); //gets the credit card div
+const CCNumInput = document.getElementById('cc-num'); //gets the cc num input element
+const CCZipInput = document.getElementById('zip'); //gets the zip input element
+const CCCVVInput = document.getElementById('cvv'); //gets the ccv input element
+const payPalDiv = paymentInfoFieldset.children[4]; //gets the paypal div
+const bitcoinDiv = paymentInfoFieldset.children[5]; //gets the bitcoin div
 
-//create elements
+//// CREATE ELEMENTS
+
 const colorOptionPlaceholder = document.createElement('option');
 const activitiesTotalH2 = document.createElement('h2');
 
@@ -50,33 +51,37 @@ GENERAL FUNCTIONS
 **********************************************************************/
 
 //removes an item
-const removeItem = (item) => {
+const removeItem = item => {
   item.remove();
 }
 
 //sets the element display style to none
-const hide = (element) => {
+const hide = element => {
   element.style.display = 'none';
 }
 
 //sets the element display style to block
-const show = (element) => {
+const show = element => {
   element.style.display = 'block';
 }
 
-const requiredOn  = (element) => {
+//gives element the required attribute
+const requiredOn  = element => {
   element.required = true;
 }
 
-const requiredOff  = (element) => {
+//removes the required attribute
+const requiredOff  = element => {
   element.removeAttribute('required');
 }
 
+//gives element the pattern attribute
 const patternOn  = (element, patternString) => {
   element.pattern = patternString;
 }
 
-const patternOff  = (element) => {
+//removes the pattern attribute
+const patternOff  = element => {
   element.removeAttribute('pattern');
 }
 
@@ -88,7 +93,7 @@ RELATED TO JOB SELECTION
 
 //checks job select input, returns true if "other" is selected, false if not
 const jobValueCheck = () => {
-  let jobValue = jobSelect.value === 'other'; //if job selection is "other", store true; if not "other", store false
+  let jobValue = jobSelect.value === 'other'; //if job selection is "other", store true; otherwise store false
   return jobValue;
 }
 
@@ -99,17 +104,23 @@ const jobOtherFound = () => {
   return result;
 }
 
-//removes input element for "other" job option
+//removes the input element for "other" job option
 const removeOtherTitle = () => {
   removeItem(document.getElementById('other-title'));
   jobOtherTitle = null;
 }
 
-//appends input box for user to type job
+//appends the "other" job input
 const appendOtherJobInput = () => {
   basicInfoFieldSet.appendChild(jobOtherInput);
   jobOtherTitle = jobOtherInput;
 }
+
+//listens for job select box to change
+jobSelect.addEventListener('change', () => {
+  jobOtherFound() && removeOtherTitle(); //if jobOtherFound is true, removes jobOtherTitle box; if false, nothing
+  jobValueCheck() && appendOtherJobInput(); //if jobValueCheck is true, appends "other" job text box; if false, nothing
+});
 
 
 
@@ -127,8 +138,8 @@ const shirtColorOptionsArr = [
   {color:'Dim Grey', value:'dimgrey', theme:'heart js'}
 ];
 
-//removes color options from HTML - though it's more simple to set display to none, removing these elements cleans up the HTML. a new list will be appended
-const removeHTMLColorOptions = (removeColors) => {
+//removes color options from HTML - though it's more simple to set display to none, removing these elements cleans up the HTML; a new list will be appended
+const removeHTMLColorOptions = removeColors => {
   let list = removeColors.length;
   for (let i=0; i<list; i++) {
     removeColors.removeChild(removeColors[0]);
@@ -151,7 +162,7 @@ const addNewHTMLColorMenu = () => {
     colorOption.innerHTML = shirtColorOptionsArr[i].color;
     colorOption.value = shirtColorOptionsArr[i].value;
     colorOption.theme = shirtColorOptionsArr[i].theme;
-    hide(colorOption); //all options hidden by defalt
+    hide(colorOption); //all options hidden by default
   }
 }
 
@@ -160,11 +171,14 @@ const getColorOptions = () => {
   let selTheme = shirtThemeMenu.value; //gets theme selected
   let currentColorList = []; //empties array, staged to be stored with filtered colors
   for (let i=0; i<colorMenu.length; i++) { //loops through each color to match with theme
-    if (colorMenu[i].theme === selTheme) { //if tshirt color theme matches selected theme
+    if (colorMenu[i].theme == selTheme) { //if tshirt color theme matches selected theme
       show(colorMenu[i]); //then set display style to block (show it)
       currentColorList.push(colorMenu[i]); //and push color to currentColorList array
+      //if browser does not support hiding option elements (such as Safari), the disabled attribute is used to prevent user from selecting options that should be hidden
+      colorMenu[i].disabled = false; //these options are selectable
     } else {
-      hide(colorMenu[i]) //otherwise, set display style to none (hide it)
+      hide(colorMenu[i]); //otherwise, set display style to none (hide it)
+      colorMenu[i].disabled = true; //these options are not selectable (either hidden or disabled)
     }
   }
   setSelected(currentColorList); //sets first option as selected
@@ -180,14 +194,20 @@ const toggleColorDiv = () => {
 }
 
 //sets first option as selected or placeholder option as visible and selected
-const setSelected = (list) => {
+const setSelected = list => {
   if (list.length > 0) { //if there are any color options currently displayed
     list[0].selected = true; //then select the first one
-  } else { //placeholder is selected and visible
+  } else { //or else the placeholder is selected and visible
     show(colorOptionPlaceholder);
     colorOptionPlaceholder.selected = true;
   }
 }
+
+//listens for tshirt design select box to change
+shirtThemeMenu.addEventListener('change', () => {
+  getColorOptions();
+  toggleColorDiv();
+});
 
 
 
@@ -216,21 +236,21 @@ const checkForConflict = (checkedActivity, activityArr) => {
 }
 
 //accepts an input to grey out and disable, for conflicting activities
-const greyOut = (activityName) => {
+const greyOut = activityName => {
   for (let i=0; i<activitiesLabels.length; i++) {
     if (activityName === activitiesLabels[i].firstElementChild.name) { //takes the name and finds the label element
       activitiesLabels[i].style.color = '#888'; //turns input label grey
-      activitiesLabels[i].firstElementChild.setAttribute('disabled', ''); //disables insput element
+      activitiesLabels[i].firstElementChild.setAttribute('disabled', ''); //disables input element
     }
   }
 }
 
-//accepts an input to change from greyOut to defult
-const cancelGreyOut = (activityName) => {
+//accepts an input to change from greyOut to default
+const cancelGreyOut = activityName => {
   for (let i=0; i<activitiesLabels.length; i++) {
     if (activityName === activitiesLabels[i].firstElementChild.name) { //takes the name and finds the label element
       activitiesLabels[i].style.color = '#000'; //turns input label black
-      activitiesLabels[i].firstElementChild.removeAttribute('disabled', ''); //disables insput element
+      activitiesLabels[i].firstElementChild.removeAttribute('disabled', ''); //disables input element
     }
   }
 }
@@ -245,10 +265,10 @@ const matchChecked = (checkedName, arr) => {
   }
 }
 
-//checks for conflicting activities and greys them out or restors defult, depending on if checked or unchecked
+//checks for conflicting activities and grays them out or restores default, depending on if checked or unchecked
 const getConflictingElements = (checkedActivity, arr, checkedOrNot) => {
   for (let i=0; i<arr.length; i++) {
-    //if checked, then find confilicting activities and grey them out, if not checked (just unchecked), then find confilicting element (currently greyed out) and restore defults
+    //if checked, then find conflicting activities and grey them out, if not checked (just unchecked), then find conflicting element (currently greyed out) and restore defaults
     checkedOrNot ? checkForConflict(checkedActivity, arr[i]) && greyOut(arr[i].name) : checkForConflict(checkedActivity, arr[i]) && cancelGreyOut(arr[i].name);
   }
 }
@@ -259,22 +279,36 @@ const toggleActivitiesTotal = () => {
 }
 
 //gets to price of the activity, stores in global variable
-const getActivityPrice = (activity) => {
+const getActivityPrice = activity => {
   activityPrice = activity.price;
   return activityPrice;
 }
 
 //if the activity was just checked (true), add activity price to total price (global variable), if unchecked, subtract activity price from total price
-const updateActivityPrice = (checked) => {
+const updateActivityPrice = checked => {
   checked ? totalPrice += activityPrice : totalPrice -= activityPrice;
-  activitiesTotalH2.innerHTML = 'Total: $' + totalPrice;
+  activitiesTotalH2.innerHTML = 'Total: $' + totalPrice; //updates html
 }
 
-//counts number of checked activities
-const getNumberChecked = (checked) => {
+//counts number of checked activities, used in form validation
+const getNumberChecked = checked => {
   //if true, plus one checked activity; if false, minus one
   checked ? checkedActivities += 1 : checkedActivities -= 1;
 }
+
+//listens for activities to be checked
+activitiesField.addEventListener('change', (e) => {
+  const checkedActivity = e.target; //stores checked input
+  const isChecked = checkedActivity.checked; //true or false
+  const checkedActivityName = checkedActivity.name; //stores checkedActivity (input element) name property
+  matchChecked(checkedActivityName, activitiesArr); //matches checked activity with corresponding array element (each activity in the HTML has a matching array element in activitiesArr)
+  getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets conflicting activities (if any) and grays out or cancels grey out appropriately (if checked or unchecked)
+  getActivityPrice(checkedArr); //get price of activity
+  updateActivityPrice(isChecked); //add or subtract the activity price from total price
+  toggleActivitiesTotal(); //show total if it is greater than $0
+  getNumberChecked(isChecked); //counts number of checked inputs
+  validateActivities(); //checks validation after changes have been made to activities selection
+  });
 
 
 
@@ -289,8 +323,8 @@ const hideAllPaymentDivs = () => {
   hide(bitcoinDiv);
 }
 
-//hides previous payment divs and shows new div
-const togglePaymentDiv = (div) => {
+//hides all payment divs and shows new div
+const togglePaymentDiv = div => {
   hideAllPaymentDivs();
   show(div);
 }
@@ -314,8 +348,14 @@ const showSelectedPayment = () => {
   selectedPayment = selectPaymentMethod.options[selectPaymentMethod.selectedIndex];
   //gets list of all elements with selected class. stores the second element from list (in HTML the div is second, the option is first)
   let showDiv = document.getElementsByClassName(selectedPayment.classList[0])[1];
-  togglePaymentDiv(showDiv)
+  togglePaymentDiv(showDiv) 
 }
+
+//listens for payment method selection
+selectPaymentMethod.addEventListener('change', () => {
+  showSelectedPayment();
+  requiredCC(); //on or off, depending on if CC is selected payment method
+});
 
 
 
@@ -324,25 +364,13 @@ FORM VALIDATION
 **********************************************************************/
 
 /*
-Alot of credit given to Ana Sampaio who wrote an artical for The UI Files. This article was a major resource used in creating this form validation.
+A lot of credit given to Ana Sampaio who wrote an article for The UI Files. This article was a major resource used in creating this form validation.
 https://medium.com/the-ui-files/form-validation-with-javascript-4fcf4dd32846
 */
 
-
-//array of error messages, used for unique input validation
-const labelErrorMessages = [
-  {label:'name', errorMessage: 'Please include your full name.'}, 
-  {label:'mail', errorMessage: 'Please include a valid email'}, 
-  {label:'title', errorMessage: '– Please provide a job title'}, 
-  {label:'design', errorMessage: 'Please select a t-shirt design'}, 
-  {label:'activity', errorMessage: 'Please select an activity'}, 
-  {label:'cc-num', errorMessage: 'Must be a valid CC number'}, 
-  {label:'zip', errorMessage: ''}, 
-  {label:'cvv', errorMessage: ''}, 
-];
-
 //appends and styles main error message at the top of the page, toggle based off true or false parameter
 const toggleMainError = tOrF => {
+  //if the document already contains the error message, then remove it. prevents duplicate error message
   document.contains(document.getElementById('main-error-message')) ? document.getElementById('main-error-message').remove() : '';
   //creates and styles div to hold error message
   const mainErrorDiv = document.createElement('div');
@@ -408,7 +436,7 @@ const getLabelElement = labelFor => {
   return label;
 }
 
-//taks string as parameter and returns input element with matching id
+//takes string as parameter and returns input element with matching id
 const getInputElement = labelFor => {
   let input;
   for (let i=0; i<inputElements.length; i++) {
@@ -417,33 +445,22 @@ const getInputElement = labelFor => {
   return input;
 }
 
-//gets error message from array based off parameter, takes a string, must match label property from arrey
-const getErrorMessage = forLabel => {
-  let currentMessage;
-  for (i=0; i<labelErrorMessages.length; i++) {
-    if (labelErrorMessages[i].label === forLabel) {
-      currentMessage = labelErrorMessages[i].errorMessage;
-    }
-  }
-  return currentMessage;
-}
-
+//shows and style error message inside input label elements
 const showInputErrorMessage = (labelName, tOrF, message) => {
-  const currentLebelElement = getLabelElement(labelName);
-  const currentInputElement = getInputElement(labelName);
-  const errorSpan = document.createElement('span');
-  if (tOrF && currentLebelElement.children.length === 0) {
-    currentLebelElement.appendChild(errorSpan);
-    errorSpan.innerHTML = message;
-  } else if (!tOrF && currentLebelElement.children.length >= 1){
-    currentLebelElement.children[0].remove();
+  const currentLebelElement = getLabelElement(labelName); //takes labelName parameter, finds and stores label element
+  const currentInputElement = getInputElement(labelName); //takes labelName parameter, finds and stores input element
+  const errorSpan = document.createElement('span'); //creates span element for appending to label element
+  if (tOrF && currentLebelElement.children.length === 0) { //if true and if there already isn't a message displaying
+    currentLebelElement.appendChild(errorSpan); //append new span element
+    errorSpan.innerHTML = message; //write message (parameter) in span element
+  } else if (!tOrF && currentLebelElement.children.length >= 1){ //if false and if there is a child element present
+    currentLebelElement.children[0].remove(); //then remove the child element (span element)
   }
-  errorHighlightText(currentLebelElement, tOrF);
-  errorHighlightBorder(currentInputElement, tOrF);
+  errorHighlightText(currentLebelElement, tOrF); //if true, apply "error" styling to label element; if false, remove styling
+  errorHighlightBorder(currentInputElement, tOrF); //if true, apply "error" styling to input element; if false, remove styling
 }
 
-
-///////////// NAME VALIDATION /////////////
+//// NAME VALIDATION
 
 //prevents form from submitting with name input left blank
 requiredOn(nameInput);
@@ -453,75 +470,82 @@ nameInput.dataset.valueMissing = ' Please include your full name.';
 
 //if focus leaves name input while it is blank, then show invalid formatting
 nameInput.addEventListener('blur', () => {
-  if (!nameInput.checkValidity()) {
-    showInputErrorMessage('name', true, nameInput.dataset.valueMissing);
+  if (!nameInput.checkValidity()) { //if checkValidity returns false (then IF statement is true)
+    showInputErrorMessage('name', true, nameInput.dataset.valueMissing); //then show error message with message stored in dataset property
   } else {
-    showInputErrorMessage('name', false);
+    showInputErrorMessage('name', false); //else turn error message off
   }
 });
 
+//when input has focus, turn error message off
 nameInput.addEventListener('focus', () => {
   showInputErrorMessage('name', false);
 });
 
-///////////// EMAIL VALIDATION /////////////
+//// EMAIL VALIDATION
 
+//prevents form from submitting with email input left blank
 requiredOn(emailInput);
 
+//Custom messages for type of validation error
 emailInput.dataset.valueMissing = ' Please provide your email address.';
 emailInput.dataset.patternMismatch = ' Email must be properly formatted';
 
 //code courtesy of rnevius from Stack Overflow, https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-const validateEmailPattern = email => {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
+//tests email (parameter) against pattern, returns true or false
+const validateEmailPattern = email => { 
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //regular expression, pattern for email validation
+  return re.test(String(email).toLowerCase()); //converts "email" to string & lowerCase, test email against re (regular expression) pattern; returns a Boolean
 }
 
+//primary email validation function
 const validateEmail = () => {
-  if (!emailInput.checkValidity() || !validateEmailPattern(emailInput.value)) {
-    if (emailInput.validity.valueMissing) {
-      showInputErrorMessage('mail', true, emailInput.dataset.valueMissing);
-    } else if (validateEmailPattern(emailInput.value) === false) {
-      showInputErrorMessage('mail', true, emailInput.dataset.patternMismatch);
+  if (!emailInput.checkValidity() || !validateEmailPattern(emailInput.value)) { //if test returns false; required test and pattern test
+    if (emailInput.validity.valueMissing) { //if valueMissing is true
+      showInputErrorMessage('mail', true, emailInput.dataset.valueMissing); //show valueMissing error message
+    } else if (!validateEmailPattern(emailInput.value)) { //if email fails pattern test
+      showInputErrorMessage('mail', true, emailInput.dataset.patternMismatch); //show patternMismatch error message
     }
   } else {
-    showInputErrorMessage('mail', false);
+    showInputErrorMessage('mail', false); //if no error are found, remove error message
   }
 }
 
+//if focus leaves email input, then call email validation function 
 emailInput.addEventListener('blur', () => {
   validateEmail();
 });
 
+//while user types, change border style to indicate validity
 emailInput.addEventListener('keyup', () => {
-  if (!validateEmailPattern(emailInput.value)) {
-    errorHighlightBorder(emailInput, true)
+  if (!validateEmailPattern(emailInput.value)) { //if email fails pattern test
+    errorHighlightBorder(emailInput, true); //apply red border style
     } else {
-    errorHighlightBorder(emailInput, false);
+    errorHighlightBorder(emailInput, false); //else apply default border style
   }
 });
 
+//when input has focus, turn error message off
 emailInput.addEventListener('focus', () => {
   showInputErrorMessage('mail', false);
 });
 
 ///////////// REGISTER FOR ACTIVITIES VALIDATION /////////////
 
-//prevents form from submitting if no activity is selected
-
+//shows error message in activities legend element
 const showLegendErrorMessage = (tOrF, message) => {
-  const currentElement = activitiesLegendElement;
+  const currentElement = activitiesLegendElement; 
   const errorSpan = document.createElement('span');
-  if (tOrF && currentElement.children.length === 0) {
-    currentElement.appendChild(errorSpan);
-    errorSpan.innerHTML = message;
-    currentElement.parentElement.validity.valid = false;
-  } else if (!tOrF && currentElement.children.length >= 1){
-    currentElement.children[0].remove();
+  if (tOrF && currentElement.children.length === 0) { //if true and no span elements (error messages) are present
+    currentElement.appendChild(errorSpan); //appends span (to hold error message)
+    errorSpan.innerHTML = message; 
+  } else if (!tOrF && currentElement.children.length >= 1) { //if true and error message is already present
+    currentElement.children[0].remove(); //remove error message (to prevent duplicates)
   }
-  errorHighlightText(activitiesLegendElement, tOrF);
+  errorHighlightText(activitiesLegendElement, tOrF); //styles legend element appropriately
 }
 
+//primary activities validation function
 const validateActivities = () => {
   if (checkedActivities === 0) { //checkedActivities stores the total number of activities checked
     showLegendErrorMessage(true, ' – At least one activity must be selected');
@@ -530,25 +554,27 @@ const validateActivities = () => {
   }
 }
 
+//// CREDIT CARD VALIDATION
 
-///////////// CREDIT CARD VALIDATION /////////////
-
+//Custom messages for type of validation error
 CCNumInput.dataset.valueMissing = ' Required';
 CCZipInput.dataset.valueMissing = ' Required';
 CCCVVInput.dataset.valueMissing = ' Required';
 CCNumInput.dataset.patternMismatch = ' Must be 13-16 digits';
-CCZipInput.dataset.patternMismatch = ' To short';
-CCCVVInput.dataset.patternMismatch = ' 3 digits only';
+CCZipInput.dataset.patternMismatch = ' 5-digit #';
+CCCVVInput.dataset.patternMismatch = ' 3-digit #';
 
-const paymentSelected = () => {
+//checks if CC is selected payment method, returns boolean
+const ccPaymentSelected = () => {
   let value;
-  selectPaymentMethod.selectedIndex === 1 ? value = true : value = false;
+  //if selected payment method index is 1 (which is credit card), return true; otherwise false
+  selectPaymentMethod.selectedIndex === 1 ? value = true : value = false; 
   return value;
 }
 
 //if credit card is selected, turn on CC validation; if not, turn it off
 const requiredCC = () => {
-  //toggles all CC inputs validations off
+  //toggles all CC input validations off
   const toggleCCOff = () => {
     requiredOff(CCNumInput);
     requiredOff(CCZipInput);
@@ -557,38 +583,43 @@ const requiredCC = () => {
     patternOff(CCZipInput);
     patternOff(CCCVVInput);
   }
-  //toggles all CC inputs requierments and patterns on, with regex for pattern
+  //toggles all CC input requirements and patterns on, with regex for pattern
   const toggleCCOn = () => {
     requiredOn(CCNumInput);
     requiredOn(CCZipInput);
     requiredOn(CCCVVInput);
     patternOn(CCNumInput, '[0-9]{13,16}');
-    patternOn(CCZipInput, '[0-9]{5,}');
+    patternOn(CCZipInput, '[0-9]{5}');
     patternOn(CCCVVInput, '[0-9]{3}');
   }
-  paymentSelected() ? toggleCCOn() : toggleCCOff();
+  //if cc is selected, turn cc validation on; if anything else other than cc is selected, turn cc validation off
+  ccPaymentSelected() ? toggleCCOn() : toggleCCOff(); 
 }
 
+//function used for cc #, zip, and ccv validation
 const validateInput = (input, stringName) => {
-  if (!input.checkValidity()) {
-    if (input.validity.valueMissing) {
-      showInputErrorMessage(stringName, true, input.dataset.valueMissing);
-    } else if (input.validity.patternMismatch) {
-      showInputErrorMessage(stringName, true, input.dataset.patternMismatch);
+  if (!input.checkValidity()) { //if checkValidity returns false (then true for IF statement)
+    if (input.validity.valueMissing) { //if value is missing
+      showInputErrorMessage(stringName, true, input.dataset.valueMissing); //show valueMissing error
+    } else if (input.validity.patternMismatch) { //if pattern doesn't match
+      showInputErrorMessage(stringName, true, input.dataset.patternMismatch); //show patternMismatch error
     } else {
-      showInputErrorMessage(stringName, false);
+      showInputErrorMessage(stringName, false); //otherwise show no error
     }
   }
 }
 
+//if focus leaves CC input, then call CC validation function 
 CCNumInput.addEventListener('blur', () => {
   validateInput(CCNumInput, 'cc-num');
 });
 
+//when input has focus, turn error message off
 CCNumInput.addEventListener('focus', () => {
   showInputErrorMessage('cc-num', false);
 });
 
+//while user types, change border style to indicate validity
 CCNumInput.addEventListener('keyup', () => {
   if (CCNumInput.validity.patternMismatch) {
     errorHighlightBorder(CCNumInput, true)
@@ -597,14 +628,17 @@ CCNumInput.addEventListener('keyup', () => {
   }
 });
 
+//if focus leaves zip input, then call zip validation function 
 CCZipInput.addEventListener('blur', () => {
   validateInput(CCZipInput, 'zip');
 });
 
+//when input has focus, turn error message off
 CCZipInput.addEventListener('focus', () => {
   showInputErrorMessage('zip', false);
 });
 
+//while user types, change border style to indicate validity
 CCZipInput.addEventListener('keyup', () => {
   if (CCZipInput.validity.patternMismatch) {
     errorHighlightBorder(CCZipInput, true)
@@ -613,14 +647,17 @@ CCZipInput.addEventListener('keyup', () => {
   }
 });
 
+//if focus leaves ccv input, then call ccv validation function 
 CCCVVInput.addEventListener('blur', () => {
   validateInput(CCCVVInput, 'cvv');
 });
 
+//when input has focus, turn error message off
 CCCVVInput.addEventListener('focus', () => {
   showInputErrorMessage('cvv', false);
 });
 
+//while user types, change border style to indicate validity
 CCCVVInput.addEventListener('keyup', () => {
   if (CCCVVInput.validity.patternMismatch) {
     errorHighlightBorder(CCCVVInput, true)
@@ -629,21 +666,28 @@ CCCVVInput.addEventListener('keyup', () => {
   }
 });
 
-
-///////////// SUBMIT VALIDATION /////////////
+//// SUBMIT VALIDATION
 
 // listens for submit button
 formElement.addEventListener('submit', (e) => {
-  if (!formElement.checkValidity() || checkedActivities === 0) { //checks whole form for validity errors, if there is at least one error, runs block of code below
-    console.log('there was an error');
-    e.preventDefault();
-    toggleMainError(true);
-    window.scroll(0,0);
-    validateEmail();
-    validateActivities();
-    validateInput(CCNumInput, 'cc-num');
+  //checks whole form for validity errors, if there is at least one error, runs block of code below; also check for at least one checked activity and valid email pattern
+  if (!formElement.checkValidity() || checkedActivities === 0 || !validateEmailPattern(emailInput.value)) { 
+    e.preventDefault(); //prevent form submission
+    toggleMainError(true); //show error message
+    window.scroll(0,0); //takes view back to top of page
+    validateEmail(); //check email validation 
+    validateActivities(); //check activities validation 
+    validateInput(CCNumInput, 'cc-num'); //check all cc payment validation
     validateInput(CCZipInput, 'zip');
     validateInput(CCCVVInput, 'cvv');
+  }
+});
+
+//listens to whole form, if main error message is present, removes it once form passes validation 
+formElement.addEventListener('keyup', () => {
+  //if whole form is valid and main error message is present
+  if (formElement.checkValidity() && checkedActivities > 0 && validateEmailPattern(emailInput.value) && document.getElementById("main-error-message")) { 
+    document.getElementById("main-error-message").remove(); //remove main error message
   }
 });
 
@@ -657,57 +701,18 @@ nameInput.focus(); //sets focus to name input on page load
 hide(colorDiv); //removes color div
 activitiesField.appendChild(activitiesTotalH2); //appends total price h2 element
 paymentOptions[0].style.display = 'none'; //hides the payment placeholder option
-paymentOptions[1].selected = true; //selects credit card as defult payment option
-formElement.noValidate = true; //turns off defult validation messages
+paymentOptions[1].selected = true; //selects credit card as default payment option
+formElement.noValidate = true; //turns off default validation messages
 
-removeOtherTitle();
-removeHTMLColorOptions(colorMenu);
-addColorPlaceholder();
-addNewHTMLColorMenu();
-toggleActivitiesTotal();
-hideAllPaymentDivs();
-giveAllMatchingClass();
-show(creditCardDiv); //shows CC payment option by defult
-requiredCC(); //requires CC by defult, since it is showing
-
-
-
-/**********************************************************************
-EVENT LISTENERS
-**********************************************************************/
-
-//listens for job select box to change
-jobSelect.addEventListener('change', () => {
-  jobOtherFound() && removeOtherTitle(); //if jobOtherFound is true, removes jobOtherTitle box; if false, nothing
-  jobValueCheck() && appendOtherJobInput(); //if jobValueCheck is true, appends "other" job text box; if false, nothing
-});
-
-//listens for tshirt design select box to change
-shirtThemeMenu.addEventListener('change', () => {
-  getColorOptions();
-  toggleColorDiv();
-});
-
-//listens for actifities to be checked
-activitiesField.addEventListener('change', (e) => {
-const checkedActivity = e.target; //stores checked input
-const isChecked = checkedActivity.checked; //true or false
-const checkedActivityName = checkedActivity.name; //stores checkedActivity (input element) name property
-matchChecked(checkedActivityName, activitiesArr); //matches checked activity with corresponding array element (each activity in the HTML has a matching array element in activitiesArr)
-getConflictingElements(checkedActivity, activitiesArr, isChecked); //gets conflicting activities (if any) and greys out or cancels grey out appropriately (if checked or unchecked)
-getActivityPrice(checkedArr); //get price of activity
-updateActivityPrice(isChecked); //add or subtract the activity price from total price
-toggleActivitiesTotal(); //show total if it is greater than $0
-getNumberChecked(isChecked); //counts number of checked inputs
-validateActivities(); //checks validation after changes have been made to activities selection
-});
-
-//listens for payment method selection
-selectPaymentMethod.addEventListener('change', () => {
-  showSelectedPayment();
-  requiredCC(); //on or off, depending on if CC is selected payment method
-});
-
+removeOtherTitle(); //remove "other" input under job selection
+removeHTMLColorOptions(colorMenu); //removes color menu
+addColorPlaceholder(); //adds color placeholder
+addNewHTMLColorMenu(); //adds color menu to HTML
+toggleActivitiesTotal(); //removes activities price total
+hideAllPaymentDivs(); //hides all payment divs
+giveAllMatchingClass(); //gives matching classes to payment options and payment divs
+show(creditCardDiv); //shows CC payment option by default
+requiredCC(); //requires CC by default, since it is showing
 
 
 
