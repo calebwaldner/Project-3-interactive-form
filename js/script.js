@@ -10,6 +10,7 @@ let jobOtherTitle, //used to determine if the "other job" input element is prese
     activityPrice=0, //used to store the currently selected activity price
     totalPrice=0, //used to store the current total price of all selected activities
     checkedActivities=0, //used to tally how many activities are currently selected
+    emailHasFocus, //used to track if email input has focus
     selectedPayment; ////used to store the option element that was selected from select payment menu
 
 //// GET ELEMENTS
@@ -501,6 +502,14 @@ const validateEmailPattern = email => {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //regular expression, pattern for email validation
   return re.test(String(email).toLowerCase()); //converts "email" to string & lowerCase, test email against re (regular expression) pattern; returns a Boolean
 }
+
+//both these listeners are used to update the emailHasFocus variable
+emailInput.addEventListener('focus', () => {
+  emailHasFocus = true; //sets variable to true during focus event
+});
+emailInput.addEventListener('blur', () => {
+  emailHasFocus = false; //sets variable to false during blur event
+});
 
 //primary email validation function
 const validateEmail = () => {
