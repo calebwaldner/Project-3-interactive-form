@@ -514,7 +514,9 @@ emailInput.addEventListener('blur', () => {
 //primary email validation function
 const validateEmail = () => {
   if (!emailInput.checkValidity() || !validateEmailPattern(emailInput.value)) { //if test returns false; required test and pattern test
-    if (emailInput.validity.valueMissing) { //if valueMissing is true
+    if (emailInput.value === "" && emailHasFocus === true) { //checks if email has focus and is blank
+      showInputErrorMessage('mail', false); //if so, then remove error message
+    } else if (emailInput.validity.valueMissing) { //else if valueMissing is true
       showInputErrorMessage('mail', true, emailInput.dataset.valueMissing); //show valueMissing error message
     } else if (!validateEmailPattern(emailInput.value)) { //if email fails pattern test
       showInputErrorMessage('mail', true, emailInput.dataset.patternMismatch); //show patternMismatch error message
@@ -531,6 +533,11 @@ emailInput.addEventListener('blur', () => {
 
 //while user types, change border style to indicate validity
 emailInput.addEventListener('keyup', () => { 
+  validateEmail();
+});
+
+//when input has focus, check validation (this is an extra measure and helps insures the validation messages fire whether the user used a click or key to focus on the input. Prior to this, if the user clicked into the input the validation check didn't run until the user started to type)
+emailInput.addEventListener('focus', () => {
   validateEmail();
 });
 
