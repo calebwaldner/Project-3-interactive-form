@@ -297,6 +297,14 @@ const getNumberChecked = checked => {
   checked ? checkedActivities += 1 : checkedActivities -= 1;
 }
 
+const boldLable = (checked, isChecked) => {
+  if (isChecked === true) {
+    checked.parentElement.style.fontWeight = 'bold';
+  } else {
+    checked.parentElement.style.fontWeight = 'normal';
+  }
+}
+
 //listens for activities to be checked
 activitiesField.addEventListener('change', (e) => {
   const checkedActivity = e.target; //stores checked input
@@ -309,6 +317,7 @@ activitiesField.addEventListener('change', (e) => {
   toggleActivitiesTotal(); //show total if it is greater than $0
   getNumberChecked(isChecked); //counts number of checked inputs
   validateActivities(); //checks validation after changes have been made to activities selection
+  boldLable(checkedActivity, isChecked);
   });
 
 
